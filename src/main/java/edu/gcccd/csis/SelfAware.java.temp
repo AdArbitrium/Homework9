@@ -1,0 +1,78 @@
+package edu.gcccd.csis;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+public class SelfAware implements Language {
+
+    public static void main(String[] args) throws Exception {
+        final String code = System.getProperty("user.dir") + File.separator +
+                "src" + File.separator + "main" + File.separator + "java" + File.separator +
+                SelfAware.class.getName().replace(".", File.separator) + ".java";
+        SelfAware sa = new SelfAware();
+        sa.append(code,"\n//Keyword occurrences: " + sa.occurrences(code));
+
+    }
+
+    /**
+     * @return {@link int} number of times java keyword occur in the source file.
+     * @throws Exception not a java file or no file maybe ...
+     */
+    @Override
+    public int occurrences(String sourceFile) throws Exception {
+        File file = new File(sourceFile);
+        String line = new String(Files.readAllBytes(Paths.get(sourceFile)));
+        int counter = 0;
+        String[] words = line.split("\\W+");
+
+        for(String src: words){
+            for (String reserved: ReservedWords){
+                if (reserved.equals(src)){
+                    counter++;
+                }
+            }
+        }
+        return counter;
+    }
+
+    /**
+     * Appends the provided file with the provided message
+     *
+     * @param sourceFile {@link String} path to a java source file
+     * @param message    {@link String} message to be appended
+     * @throws IOException things didn't go too well ...
+     */
+
+    @Override
+    public void append(String sourceFile, String message) throws IOException {
+       File tempFile = new File(sourceFile + ".temp");
+       File srcFile = new File(sourceFile);
+       FileWriter writer = new FileWriter(tempFile);
+       BufferedReader  in = new BufferedReader(new FileReader(sourceFile));
+       final String originalPath = srcFile.getAbsolutePath();
+       String line = in.readLine();
+
+       if (tempFile.createNewFile()){
+            System.out.println("File is created!");
+       }else{
+            System.out.println("File already exists.");
+            tempFile = new File(sourceFile + ".temp");
+            tempFile.createNewFile();
+       }
+
+       while(line != null)
+       {
+           writer.write(line + "\n");
+           line = in.readLine();
+       }
+       writer.write("/*" + message + "\n" + "*/" + "\n");
+       writer.close();
+
+//       srcFile.renameTo(new File(sourceFile + ".garbage"));
+//       tempFile.renameTo(new File(originalPath));
+//       Files.delete(Paths.get(srcFile.getAbsolutePath()));
+    }
+}
+/*
+//Keyword occurrences: 44
+*/
